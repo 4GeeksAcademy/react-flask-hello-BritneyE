@@ -6,6 +6,7 @@ from api.models import db, User
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_jwt_extended import create_access_token, get_jwt_identity,jwt_required
 api = Blueprint('api', __name__)
 
 # Allow CORS requests to this API
@@ -44,20 +45,41 @@ def handle_log_in():
     new_email = body["email"]
     new_password = body["password"]
     main_user = User.query.filter_by(email = new_email).first()
-
     if not main_user:
         return jsonify("No matching email found!"), 401
+    
     if not check_password_hash(main_user.password, new_password):
         return jsonify("Invalid password, please try again"), 401
+    
+    token = create_access_token(identity = new_email)
+
     response_body = {
         "message": "Welcome, User",
-        "user": main_user.serialize()
+        "user": main_user.serialize(),
+        "token": token
     }
-    
     return jsonify(response_body), 200
+
+@api.route('/user', methods=['GET'])
+@jwt_required()
+def handle_a_user():
+    user_email = get_jwt_identity()
+    print("user email HERE!", user_email)
+    main_user = User.query.filter_by(email = user_email).first()
+    resp = {
+        "data": main_user.serialize(),
+        "message": "User found"
+    }
+    return jsonify(resp), 200 
+   
 
 
 # {
-#     "email":email@email.com
+#     "email": email@email.com
 #     "password": pass123
 # }
+
+# hash password: scrypt:32768:8:1$5xyRsee5lQkN836n$75b7fcb614729e35970572ba90b901367e47100d22b45f06c1a8c5b0d642c7f0e4207748f7e2e544ae9f7cc2f83b5433df20eb14291476640700babba8deadb8	
+# token
+# identity = email(of user)
+# token = hsfkghgsdjasfjag
