@@ -12,16 +12,6 @@ api = Blueprint('api', __name__)
 # Allow CORS requests to this API
 CORS(api)
 
-
-@api.route('/hello', methods=['POST', 'GET'])
-def handle_hello():
-
-    response_body = {
-        "message": "Hello! I'm a message that came from the backend, check the network tab on the google inspector and you will see the GET request"
-    }
-
-    return jsonify(response_body), 200
-
 @api.route('/sign_up', methods=['POST'])
 def handle_sign_up():
     body = request.json
@@ -29,7 +19,7 @@ def handle_sign_up():
     new_password = body["password"]
     new_user = User(
         email = new_email, 
-        password= generate_password_hash(new_password)
+        password = generate_password_hash(new_password)
     )
     response_body = {
         "message": "User created succesfully!",
@@ -54,12 +44,13 @@ def handle_log_in():
     token = create_access_token(identity = new_email)
 
     response_body = {
-        "message": "Welcome, User",
+        "message": "Welcome back!, ",
         "user": main_user.serialize(),
         "token": token
     }
     return jsonify(response_body), 200
 
+# getting a specific user
 @api.route('/user', methods=['GET'])
 @jwt_required()
 def handle_a_user():
